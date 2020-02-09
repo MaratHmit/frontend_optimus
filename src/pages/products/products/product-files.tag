@@ -1,56 +1,58 @@
 | import 'components/datatable.tag'
 | import 'components/catalog-static.tag'
 | import 'modals/add-link-modal.tag'
+| import 'pages/products/files/files-modal.tag'
+| import 'pages/products/products/files/files-categories-list.tag'
 
 product-files
-    .row
-        .col-md-12
-            catalog-static(name='{ opts.name }', cols='{ cols }', rows='{ value }', handlers='{ handlers }',
-            upload='{ upload }', remove='{ handlers.remove }', reorder='true')
-                #{'yield'}(to='toolbar')
-                    .form-group(if='{ checkPermission("files", "0100") }')
-                        .input-group(class='btn btn-primary btn-file')
-                            input(name='files', onchange='{ opts.upload }', type='file', multiple='multiple')
-                            i.fa.fa-plus
-                            |  Загрузить
-                        button.btn.btn-default(name='link', onclick='{ parent.addLink }', type='button')
-                            i.fa.fa-plus
-                            |  Ссылку
+    ul(if='{ !edit }').nav.nav-tabs.m-b-2
+        li.active: a(data-toggle='tab', href='#product-files-list') Файлы
+        li: a(data-toggle='tab', href='#product-files-group') Группы
 
-                #{'yield'}(to='body')
-                    datatable-cell(name='')
-                        i.fa.fa-4x.fa-file-o.icon-file
-                            span.icon-ext {row.fileExt}
-                        //img(src='https://placeholdit.imgix.net/~text?txtsize=30&txtclr=ffffff&bg=2196F3&txt={ row.fileExt }&w=64&h=64&txttrack=0', height='64px', width='64px')
-                    datatable-cell(name='')
-                        input.form-control(value='{ row.fileText }', onchange='{ handlers.fileAltChange }')
-                        .help-block
-                            a(href="{ row.fileURL }" target='_blank') { row.fileName }
+    .tab-content
+        #product-files-list.tab-pane.fade.in.active
+            .row
+                .col-md-12
+                    catalog-static(name='{ opts.name }', cols='{ cols }', rows='{ items }', handlers='{ handlers }',
+                    catalog='{ catalog }', upload='{ upload }', remove='true', reorder='true', nolimit='true')
+                        #{'yield'}(to='toolbar')
+                            .form-group(if='{ checkPermission("images", "1000") }')
+                                button.btn.btn-primary(onclick='{ opts.catalog }', type='button')
+                                    i.fa.fa-plus
+                                    |  Добавить
+                        #{'yield'}(to='body')
+                            datatable-cell(name='', style='width: 30px;')
+                                i.fa.fa-cloud-download.fa-2x
+                            datatable-cell(name='')
+                                input.form-control(value='{ row.name }', onchange='{ handlers.fileNameChange }')
+                            datatable-cell(name='')
+                                b.form-control-static { row.filePath }
+                            datatable-cell(name='')
+                                b.form-control-static
+                                    select.form-control(name='idGroup', onchange='{ handlers.changeCategory }')
+                                        option(value='') Без группы
+                                        option(each='{ handlers.filesCategory }', value='{ id }',
+                                        selected='{ id == row.idGroup }', no-reorder) { name }
 
-    style(scoped).
-        .icon-file {
-            position: relative;
-        }
-
-        .icon-ext {
-            position: absolute;
-            font-size: 13px;
-            font-weight: bold;
-            right: 7px;
-            bottom: 7px;
-        }
+        #product-files-group.tab-pane.fade
+            .row
+                .col-md-12
+                    files-categories-list(idObject='{ idObject }')
 
     script(type='text/babel').
         var self = this
         self.mixin('permissions')
+        self.app = app
+        self.filesCategory = []
+        self.idObject = 0
         self.items = []
 
         Object.defineProperty(self.root, 'value', {
             get() {
-                return self.value
+                return self.items
             },
             set(value) {
-                self.value = value || []
+                self.items = value || []
                 self.update()
             }
         })
@@ -58,35 +60,52 @@ product-files
         self.add = () => {}
 
         self.cols = [
+            {name: '', value: ''},
+            {name: '', value: 'Текст ссылки'},
             {name: '', value: 'Файл'},
-            {name: '', value: 'Текст'},
+            {name: '', value: 'Категория'},
         ]
 
         self.handlers = {
-            fileAltChange: function (e) {
-                e.item.row.fileText = e.target.value
+            fileNameChange: function (e) {
+                e.item.row.name = e.target.value
             },
-            remove: function (e) {
-                var rows = self.tags['catalog-static'].tags.datatable.getSelectedRows()
-
-                rows.forEach(function(row) {
-                    self.value.splice(self.value.indexOf(row),1)
-                })
-            }
-
+            changeCategory: function(e) {
+                if (e.target.value == '')
+                    e.item.row.idGroup = null
+                else e.item.row.idGroup = e.target.value
+            },
+            filesCategory: []
         }
 
-        self.addLink = e => {
-            modals.create('add-link-modal', {
+        self.getCategoryes = id => {
+            API.request({
+                object: 'FilesCategory',
+                method: 'Fetch',
+                success(response) {
+                    self.handlers.filesCategory = response.items
+                    self.update()
+                }
+            })
+        }
+
+        self.catalog = e => {
+            modals.create('files-modal', {
                 type: 'modal-primary',
-                title: 'Добавить ссылку',
-                submit() {
-                    self.value.push({
-                        fileText: this.item.name,
-                        fileURL:  this.item.name,
-                        fileExt:  'http',
-                        fileName: this.item.name
+                size: 'modal-lg',
+                submit: function () {
+                    let filemanager = this.tags.filemanager
+                    let items = filemanager.getSelectedFiles()
+                    let path = filemanager.path
+                    let name = filemanager.name
+
+                    items.forEach(item => {
+                        self.items.push({
+                            filePath: app.clearRelativeLink(`${path}/${item.name}`),
+                            name: name
+                        })
                     })
+
                     let event = document.createEvent('Event')
                     event.initEvent('change', true, true)
                     self.root.dispatchEvent(event)
@@ -96,62 +115,27 @@ product-files
                 }
             })
         }
-        self.upload = e => {
-            var formData = new FormData();
-            var FilesItems = []
-
-            for (var i = 0; i < e.target.files.length; i++) {
-                formData.append('file'+i, e.target.files[i], e.target.files[i].name)
-                //items.push(e.target.files[i].name)
-            }
-
-            API.upload({
-                section: opts.section,
-                object: 'Files',
-                count: e.target.files.length,
-                data: formData,
-                progress: function(e) {},
-                success: function(response) {
-                    FilesItems = response.items
-                    self.value = self.value || []
-
-                    if(FilesItems.length == 0){
-                        popups.create({title: 'Ошибка!', text: 'Данные файлы уже есть на сервере', style: 'popup-danger'})
-                    }
-                    FilesItems.forEach(i => {
-                        self.value.push({
-                            fileText: i.name,
-                            fileURL:  i.url,
-                            fileExt:  i.ext,
-                            fileName: i.file
-                        })
-                    })
-                    let event = document.createEvent('Event')
-                    event.initEvent('change', true, true)
-                    self.root.dispatchEvent(event)
-                    self.update()
-                }
-            })
-
-        }
-
-        self.on('updated', () => {
-            self.tags['catalog-static'].tags.datatable.on('reorder-end', (newIndex, oldIndex) => {
-                self.tags['catalog-static'].value.splice(newIndex, 0, self.tags['catalog-static'].value.splice(oldIndex, 1)[0])
-                var temp = self.tags['catalog-static'].value
-                self.rows = []
-                self.update()
-                self.tags['catalog-static'].value = temp
-                self.tags['catalog-static'].items.forEach((item, sort) => {
-                    item.sortIndex = sort
-                })
-            })
-        })
 
         self.on('update', () => {
             if ('name' in opts && opts.name !== '')
                 self.root.name = opts.name
 
-            if ('value' in opts)
-                self.value = opts.value || []
+            if ('value' in opts) {
+                self.items = opts.value || []
+            }
+            if (self.items.length){
+                self.value = []
+                self.items.forEach(item => {
+                    if (item.idGroup == self.idCategory) {
+                        self.value.push(item)
+                    }
+                })
+
+            }
+
+        })
+
+        observable.on('object-files', id => {
+            self.idObject = id
+            self.getCategoryes(id)
         })

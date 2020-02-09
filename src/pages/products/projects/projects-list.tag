@@ -7,6 +7,7 @@ projects-list
         sortable='true',
         cols='{ cols }',
         reload='true',
+        reorder='true'
         add='{ add }',
         remove='{ remove }',
         dblclick='{ open }',
@@ -48,6 +49,28 @@ projects-list
             riot.route(`/products/projects/${e.item.row.id}`)
         }
 
+        self.one('updated', () => {
+            self.tags.catalog.tags.datatable.on('reorder-end', () => {
+                let {current, limit} = self.tags.catalog.pages
+                let params = { indexes: [] }
+                let offset = current > 0 ? (current - 1) : 0
+                console.log(offset)
+
+                self.tags.catalog.items.forEach((item, sort) => {
+                    item.sort = sort + offset
+                    params.indexes.push({id: item.id, sort: sort + offset})
+                })
+
+                API.request({
+                    object: 'ShopProject',
+                    method: 'Sort',
+                    data: params,
+                    notFoundRedirect: false
+                })
+                self.update()
+            })
+        })
+
         self.getProjectsCategories = () => {
             API.request({
                 object: 'ShopProjectGroup',
@@ -71,7 +94,7 @@ projects-list
 
         self.one('updated', () => {
             self.tags.catalog.on('reload', () => {
-            self.getNewsCategories()
+            self.getProjectsCategories()
             })
         })
 

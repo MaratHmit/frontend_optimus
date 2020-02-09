@@ -56,6 +56,7 @@ images
         self.tab = ''
         self.tabs = [
             {title: 'Товары', name: 'products', link: 'products', path: 'shopprice'},
+            {title: 'Товары 3D', name: 'products3d', link: 'products3d', path: 'shopPrice3d'},
             {title: 'Категории товаров', name: 'categories', link: 'categories', path: 'shopgroup'},
             {title: 'Новости', name: 'news', link: 'news', path: 'newsimg'},
             {title: 'Бренды', name: 'brands', link: 'brands', path: 'shopbrand'},

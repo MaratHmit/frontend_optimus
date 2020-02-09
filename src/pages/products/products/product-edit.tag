@@ -43,7 +43,10 @@ product-edit
                     span.hidden-xs  Описание
             li
                 a(data-toggle='tab', href='#product-edit-images', class="fa fa-picture-o", title="Картинки")
-                    span.hidden-xs  Картинки
+                    span.hidden-xs  Фото
+            li
+                a(data-toggle='tab', href='#product-edit-3D-images', class="fa fa-photo", title="3D фото")
+                    span.hidden-xs  3D Фото
             li
                 a(data-toggle='tab', href='#product-edit-prices', class="fa fa-cog", title="Цены")
                     span.hidden-xs  Цены
@@ -306,6 +309,11 @@ product-edit
                 form(action='', onchange='{ change }', onkeyup='{ change }', method='POST')
                     product-edit-images(name='images', value='{ item.images }', section='shopprice')
 
+            // Редактирование 3D изображений продукта
+            #product-edit-3D-images.tab-pane.fade
+                form(action='', onchange='{ change }', onkeyup='{ change }', method='POST')
+                    product-edit-images(name='images_3d', value='{ item.images_3d }', section='shopPrice3d')
+
             // Цены на изменение продукта
             #product-edit-prices.tab-pane.fade
                 form(action='', onchange='{ change }', onkeyup='{ change }', method='POST')
@@ -390,7 +398,7 @@ product-edit
             // Файлы редактирования продукта
             #product-edit-files.tab-pane.fade
                 form(action='', method='POST')
-                    product-files(name='files', value='{ item.files }', section='shopprice')
+                    product-files(name='files', value='{ item.files }', section='files')
 
 
 

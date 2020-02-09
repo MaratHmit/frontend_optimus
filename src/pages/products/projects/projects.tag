@@ -4,6 +4,10 @@
 projects
     .row
         .col-md-4.col-xs-12
+            .well.well-sm
+                .form-inline
+                    .form-group
+                        label.control-label Группы
             catalog(
                 object      = 'ShopProjectGroup',
                 cols        = '{ cols }',
@@ -13,6 +17,7 @@ projects
                 short       = 'true',
                 reorder     = 'true',
                 reload      = 'true',
+                handlers    = '{ handlers }',
                 disablepagination = 'true'
             )
                 #{'yield'}(to='body')
@@ -20,6 +25,10 @@ projects
                     datatable-cell(name='name') { row.name }
 
         .col-md-8.col-xs-12
+            .well.well-sm
+                .form-inline
+                    .form-group
+                        label.control-label Успешные проекты
             projects-list(name='section-item', filters='{ categoryFilters }', section='{ idSection }')
 
     script(type='text/babel').
@@ -29,6 +38,7 @@ projects
         self.idSection = 0;
         self.categoryFilters = [{field: 'idGroup', sign: 'IN', value: self.idGroup }]
 
+        self.mixin('permissions')
         self.mixin('remove')
 
         var route = riot.route.create()
@@ -69,8 +79,31 @@ projects
         ]
 
         self.one('updated', () => {
+            self.tags.catalog.tags.datatable.on('reorder-end', () => {
+                let {current, limit} = self.tags.catalog.pages
+                let params = { indexes: [] }
+                let offset = current > 0 ? (current - 1) : 0
+                console.log(offset)
 
+                self.tags.catalog.items.forEach((item, sort) => {
+                    item.sort = sort + offset
+                    params.indexes.push({id: item.id, sort: sort + offset})
+                })
+
+                API.request({
+                    object: 'ShopProjectGroup',
+                    method: 'Sort',
+                    data: params,
+                    notFoundRedirect: false
+                })
+                self.update()
+            })
         })
+
+        observable.on('projects-reload', () => {
+            self.tags.catalog.reload()
+        })
+
 
         self.pageclick = e => {
             let rows = self.tags['section-page'].tags.datatable.getSelectedRows()
@@ -79,7 +112,3 @@ projects
             self.update()
             observable.trigger('section-reload')
         }
-
-        self.on('mount', () => {
-
-        })
