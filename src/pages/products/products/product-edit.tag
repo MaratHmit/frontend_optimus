@@ -935,6 +935,7 @@ product-edit
             getProduct(id, () => {
                 self.loader = false
                 self.update()
+                observable.trigger('product-files', id)
             })
         })
 

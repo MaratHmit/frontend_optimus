@@ -1,7 +1,7 @@
 | import 'components/ckeditor.tag'
 | import parallel from 'async/parallel'
 | import 'pages/products/products/products-list-select-modal.tag'
-| import 'pages/products/projects/group-select-modal.tag'
+| import 'pages/products/projects/project-group-select-modal.tag'
 
 project-edit
     loader(if='{ loader }')
@@ -18,7 +18,9 @@ project-edit
         ul.nav.nav-tabs.m-b-2
             li.active #[a(data-toggle='tab', href='#project-edit-home') Информация о проекте]
             li #[a(data-toggle='tab', href='#project-edit-photos') Фотографии]
+            li #[a(data-toggle='tab', href='#project-edit-seo') SEO Продвижение]
             li #[a(data-toggle='tab', href='#project-edit-products') Товары]
+
         form(action='', onchange='{ change }', onkeyup='{ change }', method='POST')
             .tab-content
                 #project-edit-home.tab-pane.fade.in.active
@@ -47,23 +49,48 @@ project-edit
                                 label.control-label Описание
                                 ckeditor(name='text', value='{ item.text }')
 
-
                 #project-edit-photos.tab-pane.fade
                     form(action='', onchange='{ change }', onkeyup='{ change }', method='POST')
                         product-edit-images(name='images', value='{ item.images }', section='shopProject')
+                #project-edit-seo.tab-pane.fade
+                    form(action='', onchange='{ change }', onkeyup='{ change }', method='POST')
+                        .row
+                            .col-md-12
+                                .form-group
+                                    button.btn.btn-primary.btn-sm(each='{ seoTags }', title='{ note }', type='button'
+                                        onclick='{ seoTag.insert }', no-reorder) { name }
+                                .form-group
+                                    label.control-label  Заголовок
+                                    input.form-control(name='title', type='text',
+                                        onfocus='{ seoTag.focus }', value='{ item.title }')
+                                .form-group
+                                    label.control-label  Ключевые слова
+                                    input.form-control(name='keywords', type='text',
+                                        onfocus='{ seoTag.focus }', value='{ item.keywords }')
+                                .form-group
+                                    label.control-label  Описание
+                                    textarea.form-control(rows='5', name='description', onfocus='{ seoTag.focus }',
+                                        style='min-width: 100%; max-width: 100%;', value='{ item.description }')
 
                 #project-edit-products.tab-pane.fade
                     .row
                         .col-md-12
-                            form(action='', onchange='{ change }', onkeyup='{ change }', method='POST')
-                                catalog-static(name='products', add='{ addProducts }',
-                                    cols='{ productsCols }', rows='{ item.products }', remove='true')
-                                    #{'yield'}(to='body')
-                                        datatable-cell(name='id') { row.id }
-                                        datatable-cell(name='code') { row.code }
-                                        datatable-cell(name='article') { row.article }
-                                        datatable-cell(name='name') { row.name }
-                                        datatable-cell(name='price') { row.price }
+                            catalog-static(name='products', add='{ addProducts }', handlers='{ itemsHandlers }',
+                                cols='{ productsCols }', rows='{ item.products }', remove='true')
+                                #{'yield'}(to='body')
+                                    datatable-cell(name='id') { row.id }
+                                    datatable-cell(name='code') { row.code }
+                                    datatable-cell(name='article') { row.article }
+                                    datatable-cell(name='name') { row.name }
+                                    datatable-cell(name='count', style = "width: 100px")
+                                        input.form-control(
+                                            style="text-align:center",
+                                            type='number',
+                                            min='0', step='1',
+                                            value='{ parseFloat(row.count) }',
+                                            onchange='{ handlers.numberChange }'
+                                        )
+                                    datatable-cell(name='price') { row.price }
 
 
     script(type='text/babel').
@@ -78,9 +105,10 @@ project-edit
 
         self.productsCols = [
             {name: 'id', value: '#'},
-            {name: 'code', value: 'Код'},
+            {name: 'code', value: 'URL'},
             {name: 'article', value: 'Артикул'},
             {name: 'name', value: 'Наименование'},
+            {name: 'count', value: 'Кол-во'},
             {name: 'price', value: 'Цена'},
         ]
 
@@ -114,6 +142,14 @@ project-edit
             observable.trigger('projects-edit', self.item.id)
         }
 
+        self.itemsHandlers =  {
+            numberChange(e) {
+                console.log("ok")
+                this.row[this.opts.name] = e.target.value
+                console.log(this.opts.name)
+            }
+        }
+
         observable.on('projects-edit', id => {
             self.loader = true
             self.error = false
@@ -139,7 +175,7 @@ project-edit
 
         // Выбор группы
         self.selectGroup = e => {
-            modals.create('group-select-modal', {
+            modals.create('project-group-select-modal', {
                 type: 'modal-primary',
                 submit() {
                     let items = this.tags['catalog-tree'].tags.treeview.getSelectedNodes()
@@ -166,6 +202,7 @@ project-edit
                 })
 
                 items.forEach(item => {
+                    item.count = 1
                     if (ids.indexOf(item.id) === -1) {
                         self.item.products.push(item)
                     }

@@ -81,6 +81,7 @@ catalog-static
         }
 
         self.remove = e => {
+
             self.selectedCount = 0
             if (typeof(opts.remove) === 'function') {
                 var _this = this,
@@ -102,6 +103,8 @@ catalog-static
                 event.initEvent('change', true, true)
                 self.root.dispatchEvent(event)
 
+                self.update()
+
                 if (typeof(opts.afterRemove) === 'function') {
                     opts.afterRemove.bind(self)()
                 }
@@ -110,6 +113,7 @@ catalog-static
         }
         /*
         self.remove = () => {
+
             self.selectedCount = 0
 
             let items = self.tags.datatable.getSelectedRows()
@@ -121,6 +125,8 @@ catalog-static
             let event = document.createEvent('Event')
             event.initEvent('change', true, true)
             self.root.dispatchEvent(event)
+
+
 
             if (typeof(opts.afterRemove) === 'function') {
                 opts.afterRemove.bind(self)()

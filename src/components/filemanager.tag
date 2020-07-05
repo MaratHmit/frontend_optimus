@@ -24,7 +24,7 @@ filemanager
                     ul.dropdown-menu
                         li: a.btn-file
                             i.fa.fa-fw.fa-upload
-                            input(type='file', onchange='{ uploadFile }', accept='image/*', multiple)
+                            input(type='file', onchange='{ uploadFile }', accept='file_extension/*', multiple)
                             |  Загрузка
                         li(onclick='{ newFolder }'): a(href='#')
                             i.fa.fa-fw.fa-plus

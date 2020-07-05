@@ -107,13 +107,21 @@ parameter-edit
                             i.color(if='{ parent.parent.parent.item.type === "colorlist" }', style='background-color: { row.color };')
                             | { row.value }
                         datatable-cell(name='code') { row.code }
-            .row
-                .col-md-12
-                    .form-group
-                        .checkbox
-                            label
-                                input(type='checkbox', name='isYAMarket', checked='{ item.isYAMarket }')
-                                | Яндекс.Маркет
+            form(action='', onchange='{ change }', onkeyup='{ change }', method='POST')
+                .row
+                    .col-md-12
+                        .form-group
+                            .checkbox
+                                label
+                                    input(type='checkbox', name='isActive', checked='{ item.isActive }')
+                                    | Отображать в карточке товара
+                .row
+                    .col-md-12
+                        .form-group
+                            .checkbox
+                                label
+                                    input(type='checkbox', name='isMarket', checked='{ item.isMarket }')
+                                    | Яндекс.Маркет
 
     style(scoped).
         .color {
@@ -187,6 +195,7 @@ parameter-edit
 
         self.submit = e => {
             self.error = self.validation.validate(self.item, self.rules)
+            console.log(self.item)
 
             if (!self.error) {
                 API.request({

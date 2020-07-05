@@ -178,6 +178,22 @@ app.restoreSession = user => {
     })
 }
 
+
+app.clearLink = function (link) {
+    let result = link
+
+    if (!/^https?:/.test(result))
+        result = `http://{$result}`
+
+    result = result.replace(/(\/){2,}/g, '/').replace(/(http(s){0,1}:)/, '$1/')
+    return result
+}
+
+app.clearRelativeLink = function (link) {
+    return link.replace(/(\/){2,}/g, '/')
+}
+
+
 app.getImageUrl = function (name, section, lang = 'rus') {
     return `${app.config.projectURL}images/${lang}/${section}/${name}`
 }

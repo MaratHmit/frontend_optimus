@@ -42,6 +42,12 @@ parameters-list
                                     |  Объеденить параметры
                 #{'yield'}(to='body')
                     datatable-cell(name='id') { row.id }
+                    datatable-cell(name='isActive', style="max-width: 50px;")
+                        button.btn.btn-default.btn-sm(type='button',
+                        onclick='{handlers.boolChange }',
+                        ontouchend='{ handlers.boolChange }',
+                        ontouchstart='{ stopPropagation }')
+                            i(class='fa { row.isActive ? "fa-eye text-active" : "fa-eye-slash text-noactive" } ')
                     datatable-cell(name='name') { row.name }
                     datatable-cell(name='code') { row.code }
                     datatable-cell(name='measure') { row.measure }
@@ -105,6 +111,7 @@ parameters-list
 
         self.cols = [
             {name: 'id', value: '#'},
+            {name: 'isActive', value: ''},
             {name: 'name', value: 'Наименование'},
             {name: 'code', value: 'Код (URL)'},
             {name: 'measure', value: 'Ед. изм.'},
@@ -174,6 +181,36 @@ parameters-list
         observable.on('parameters-groups-reload', () => {
             self.tags.catalog.reload()
         })
+
+        // сохранение измененных через лист параметров
+        self.handlers = {
+            boolChange(e) {
+                var _this = this
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+
+                if (_this.opts.name == 'isActive')
+                    _this.row[_this.opts.name] = _this.row[_this.opts.name] ? 0 : 1
+
+                self.update()
+
+                var params = {}
+                params.id = _this.row.id
+                params[_this.opts.name] = _this.row[_this.opts.name]
+
+                params = self.tags.catalog.allParams(params);
+                API.request({
+                    object: 'Feature',
+                    method: 'Save',
+                    data: params,
+                    error(response) {
+                        if (_this.opts.name == 'isActive')
+                            _this.row[_this.opts.name] = _this.row[_this.opts.name] ? 0 : 1
+                        self.update()
+                    }
+                })
+            }
+        }
 
 
         getFeaturesTypes()

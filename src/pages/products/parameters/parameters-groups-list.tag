@@ -9,6 +9,12 @@ parameters-groups-list
     reorder='true', reload='true', store='parameters-groups-list')
         #{'yield'}(to='body')
             datatable-cell(name='id') { row.id }
+            datatable-cell(name='isActive', style="max-width: 50px;")
+                button.btn.btn-default.btn-sm(type='button',
+                onclick='{handlers.boolChange }',
+                ontouchend='{ handlers.boolChange }',
+                ontouchstart='{ stopPropagation }')
+                    i(class='fa { row.isActive ? "fa-eye text-active" : "fa-eye-slash text-noactive" } ')
             datatable-cell(name='name') { row.name }
             datatable-cell(name='sort') { row.sort }
             datatable-cell(name='description') { row.description }
@@ -22,6 +28,7 @@ parameters-groups-list
 
         self.cols = [
             {name: 'id', value: '#'},
+            {name: 'isActive', value: ''},
             {name: 'name', value: 'Наименование'},
             {name: 'sort', value: 'Индекс'},
             {name: 'description', value: 'Описание'},
@@ -83,3 +90,32 @@ parameters-groups-list
             self.tags.catalog.reload()
         })
 
+        // сохранение измененных через лист параметров
+        self.handlers = {
+            boolChange(e) {
+                var _this = this
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+
+                if (_this.opts.name == 'isActive')
+                    _this.row[_this.opts.name] = _this.row[_this.opts.name] ? 0 : 1
+
+                self.update()
+
+                var params = {}
+                params.id = _this.row.id
+                params[_this.opts.name] = _this.row[_this.opts.name]
+
+                params = self.tags.catalog.allParams(params);
+                API.request({
+                    object: 'FeatureGroup',
+                    method: 'Save',
+                    data: params,
+                    error(response) {
+                        if (_this.opts.name == 'isActive')
+                            _this.row[_this.opts.name] = _this.row[_this.opts.name] ? 0 : 1
+                        self.update()
+                    }
+                })
+            }
+        }

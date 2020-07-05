@@ -14,6 +14,8 @@ project-group-new-modal
                     textarea.form-control(rows='3', name='text',
                         style='min-width: 100%; max-width: 100%;', value='{ item.text }')
                     .help-block { error.text }
+
+
         #{'yield'}(to='footer')
             button(onclick='{ modalHide }', type='button', class='btn btn-default btn-embossed') Закрыть
             button(onclick='{ parent.opts.submit }', type='button', class='btn btn-primary btn-embossed') Сохранить

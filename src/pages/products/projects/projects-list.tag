@@ -2,7 +2,9 @@
 
 
 projects-list
-    catalog(object='ShopProject',
+    catalog(
+        object='ShopProject',
+        name='ShopProject',
         search='true',
         sortable='true',
         cols='{ cols }',
@@ -12,6 +14,7 @@ projects-list
         remove='{ remove }',
         dblclick='{ open }',
         store='projects-list',
+        filters   = '{ opts.filters }',
         new-filter='true')
 
         #{'yield'}(to='body')
@@ -54,7 +57,6 @@ projects-list
                 let {current, limit} = self.tags.catalog.pages
                 let params = { indexes: [] }
                 let offset = current > 0 ? (current - 1) : 0
-                console.log(offset)
 
                 self.tags.catalog.items.forEach((item, sort) => {
                     item.sort = sort + offset

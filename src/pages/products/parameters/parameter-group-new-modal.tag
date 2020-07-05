@@ -14,6 +14,12 @@ parameter-group-new-modal
                     textarea.form-control(rows='3', name='description',
                     style='min-width: 100%; max-width: 100%;', value='{ item.description }')
                     .help-block { error.description }
+                .form-group
+                    .checkbox
+                        label
+                            input(type='checkbox', name='isActive', checked='{ item.isActive }')
+                            | Отображать в карточке товара
+
         #{'yield'}(to='footer')
             button(onclick='{ modalHide }', type='button', class='btn btn-default btn-embossed') Закрыть
             button(onclick='{ parent.opts.submit }', type='button', class='btn btn-primary btn-embossed') Сохранить

@@ -1,6 +1,6 @@
 
 
-group-select-modal
+project-group-select-modal
     bs-modal
         #{'yield'}(to="title")
             .h4.modal-title Группы проектов

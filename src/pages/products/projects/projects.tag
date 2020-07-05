@@ -9,6 +9,7 @@ projects
                     .form-group
                         label.control-label Группы
             catalog(
+                name        = 'ShopProjectGroup',
                 object      = 'ShopProjectGroup',
                 cols        = '{ cols }',
                 add         = '{ addEdit }',
@@ -29,14 +30,14 @@ projects
                 .form-inline
                     .form-group
                         label.control-label Успешные проекты
-            projects-list(name='section-item', filters='{ categoryFilters }', section='{ idSection }')
+            projects-list(name='projectList', filters='{ projectsFilter }', section='{ idGroup }')
 
     script(type='text/babel').
         var self = this
 
         self.collection = 'ShopProjectGroup'
         self.idSection = 0;
-        self.categoryFilters = [{field: 'idGroup', sign: 'IN', value: self.idGroup }]
+        self.projectsFilter = false;
 
         self.mixin('permissions')
         self.mixin('remove')
@@ -79,6 +80,21 @@ projects
         ]
 
         self.one('updated', () => {
+
+            var datatable = self.tags['ShopProjectGroup'].tags.datatable
+            datatable.on('row-selected', (count, row) => {
+                let items = datatable.getSelectedRows()
+                if (items.length > 0) {
+                    let value = items.map(i => i.id).join(',')
+                    self.projectsFilter = [{field: 'idGroup', sign: 'IN', value}]
+                    } else {
+                        self.projectsFilter = false
+                    }
+                    self.update()
+                    self.tags['projectList'].tags['ShopProject'].reload()
+            })
+
+
             self.tags.catalog.tags.datatable.on('reorder-end', () => {
                 let {current, limit} = self.tags.catalog.pages
                 let params = { indexes: [] }

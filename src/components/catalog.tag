@@ -479,7 +479,6 @@ catalog
             /** удалить */
 
             self.debuger({ ...self.debugParam, method:"remove" })
-
             var _this = this,
                 itemsToRemove = [];
 
